@@ -49,15 +49,30 @@ router.delete('/:id', mw.validateUserId, async (req, res, next) => {
   }
 });
 
-router.get('/:id/posts', (req, res) => {
+router.get('/:id/posts', mw.validateUserId, async (req, res, next) => {
   // RETURN THE ARRAY OF USER POSTS
   // this needs a middleware to verify user id
+  try {
+    const posts = await Post.getByUserId(req.user.id);
+    res.status(200).json(posts);
+  } catch {
+    next({ message: "The posts were not able to be retrieved" })
+  }
 });
 
-router.post('/:id/posts', (req, res) => {
+router.post('/:id/posts', mw.validateUserId, mw.validatePost, async (req, res, next) => {
+
   // RETURN THE NEWLY CREATED USER POST
   // this needs a middleware to verify user id
   // and another middleware to check that the request body is valid
+  try {
+    const newPost = await Post.insert({ ...req.post, user_id: req.user.id });
+    res.status(201).json(newPost);
+  } catch (err) {
+    console.log(err);
+    next({ message: "The new post was not saved to the db" });
+  }
+
 });
 
 router.use((err, req, res, next) => {
