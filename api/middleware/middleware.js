@@ -21,28 +21,18 @@ async function validateUserId(req, res, next) {
   }
 }
 
-async function validateUser(req, res, next) {
+function validateUser(req, res, next) {
   const user = req.body;
-  try {
-    if(!user.name){
-      res.status(400).json({ message: "missing required name field" });
-    } else {
-      if(!req.params.id){
-        const newUser = await User.insert(user);
-        req.newUser = newUser;
-        next();
-      } else {
-        const updatedUser = await User.update(req.params.id, user);
-        req.updatedUser = updatedUser;
-        next();
-      }
-    }
-  } catch {
-    next({ message: `The ${!req.params.id ? `new user was` : `updates to user were`} not saved to the db` })
+  
+  if(!user.name){
+    res.status(400).json({ message: "missing required name field" });
+  } else {
+    req.user = user;
+    next();
   }
 }
 
-async function validatePost(req, res, next) {
+function validatePost(req, res, next) {
   const post = req.body;
   if(!post.text){
     res.status(400).json({ message: "missing required text field" });

@@ -25,17 +25,28 @@ router.get('/:id', mw.validateUserId, (req, res) => {
   res.status(200).json(req.user);
 });
 
-router.post('/', mw.validateUser, (req, res) => {
+router.post('/', mw.validateUser, async (req, res, next) => {
   // RETURN THE NEWLY CREATED USER OBJECT
   // this needs a middleware to check that the request body is valid
-  res.status(201).json(req.newUser);
+  try {
+    const newUser = await User.insert(req.user);
+    res.status(201).json(newUser);
+  } catch {
+    next({ message: "The new user was not saved to the db" })
+  }
 });
 
-router.put('/:id', mw.validateUserId, mw.validateUser, (req, res) => {
+router.put('/:id', mw.validateUserId, mw.validateUser, async (req, res, next) => {
   // RETURN THE FRESHLY UPDATED USER OBJECT
   // this needs a middleware to verify user id
   // and another middleware to check that the request body is valid
-  res.status(200).json(req.updatedUser);
+  try {
+    const updatedUser = await User.update(req.params.id, req.user)
+    res.status(200).json(updatedUser);
+  } catch {
+    next({ message: "The updates to user were not saved to the db" });
+  }
+  
 });
 
 router.delete('/:id', mw.validateUserId, async (req, res, next) => {
@@ -66,10 +77,12 @@ router.post('/:id/posts', mw.validateUserId, mw.validatePost, async (req, res, n
   // this needs a middleware to verify user id
   // and another middleware to check that the request body is valid
   try {
-    const newPost = await Post.insert({ ...req.post, user_id: req.user.id });
+    const newPost = await Post.insert({
+      ...req.post,
+      user_id: req.user.id
+    });
     res.status(201).json(newPost);
-  } catch (err) {
-    console.log(err);
+  } catch {
     next({ message: "The new post was not saved to the db" });
   }
 
