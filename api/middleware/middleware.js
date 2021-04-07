@@ -20,12 +20,29 @@ async function validateUserId(req, res, next) {
   }
 }
 
-function validateUser(req, res, next) {
-  // DO YOUR MAGIC
+async function validateUser(req, res, next) {
+  const user = req.body;
+  try {
+    if(!user.name){
+      res.status(400).json({ message: "missing required name field" });
+    } else {
+      if(!req.params.id){
+        const newUser = await User.insert(user);
+        req.newUser = newUser;
+        next();
+      } else {
+        const updatedUser = await User.update(req.params.id, user);
+        req.updatedUser = updatedUser;
+        next();
+      }
+    }
+  } catch {
+    next({ message: `The ${!req.params.id ? `new user was` : `updates to user were`} not saved to the db` })
+  }
 }
 
-function validatePost(req, res, next) {
-  // DO YOUR MAGIC
+async function validatePost(req, res, next) {
+
 }
 
 // do not forget to expose these functions to other modules

@@ -25,20 +25,28 @@ router.get('/:id', mw.validateUserId, (req, res) => {
   res.status(200).json(req.user);
 });
 
-router.post('/', (req, res) => {
+router.post('/', mw.validateUser, (req, res) => {
   // RETURN THE NEWLY CREATED USER OBJECT
   // this needs a middleware to check that the request body is valid
+  res.status(201).json(req.newUser);
 });
 
-router.put('/:id', (req, res) => {
+router.put('/:id', mw.validateUserId, mw.validateUser, (req, res) => {
   // RETURN THE FRESHLY UPDATED USER OBJECT
   // this needs a middleware to verify user id
   // and another middleware to check that the request body is valid
+  res.status(200).json(req.updatedUser);
 });
 
-router.delete('/:id', (req, res) => {
+router.delete('/:id', mw.validateUserId, async (req, res, next) => {
   // RETURN THE FRESHLY DELETED USER OBJECT
   // this needs a middleware to verify user id
+  try {
+    const deletedUser = await User.remove(req.user.id);
+    res.status(200).json(deletedUser);
+  } catch {
+    next({ message: "The user was not able to be deleted"});
+  }
 });
 
 router.get('/:id/posts', (req, res) => {
